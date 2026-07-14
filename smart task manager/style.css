@@ -141,7 +141,27 @@ select:focus-visible,
 
 .header-right {
   display: flex;
+  align-items: center;
   gap: 6px;
+}
+
+.streak-badge {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+
+.hbtn.active {
+  background: rgba(99, 102, 241, 0.5);
+  border-color: rgba(99, 102, 241, 0.7);
 }
 
 .hbtn {
@@ -405,6 +425,7 @@ select:focus-visible,
   border-radius: var(--radius-sm);
   transition: 0.2s;
   animation: fadein 0.18s ease;
+  cursor: grab;
 }
 
 @keyframes fadein {
@@ -844,6 +865,42 @@ select:focus-visible,
   background: #1d4ed8;
 }
 
+.shortcuts-box h2 {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+
+.shortcuts-list {
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.shortcuts-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  padding: 3px 7px;
+  background: var(--fbtn);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+
 /* TOAST */
 .toasts {
   position: fixed;
@@ -856,16 +913,46 @@ select:focus-visible,
 }
 
 .toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 9px 14px;
+  padding: 9px 10px 9px 14px;
   font-size: 12px;
   font-weight: 500;
   color: var(--text);
   box-shadow: var(--shadow);
   animation: fadein 0.25s ease;
-  max-width: 240px;
+  max-width: 280px;
+}
+
+.toast-action {
+  flex-shrink: 0;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--accent);
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.toast-action:hover {
+  background: rgba(37, 99, 235, 0.18);
+}
+
+/* DRAG & DROP REORDERING */
+.task-item.dragging {
+  opacity: 0.4;
+}
+
+.task-item.drag-over {
+  border-top: 2px solid var(--accent);
 }
 
 /* RESPONSIVE */
@@ -907,6 +994,11 @@ select:focus-visible,
     flex-direction: column;
     gap: 8px;
     text-align: center;
+  }
+
+  .header-right {
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .tactions {
