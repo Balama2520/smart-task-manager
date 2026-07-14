@@ -72,6 +72,7 @@ try {
 }
 var currentFilter = 'all';
 var currentSort = 'new';
+var manualOrder = false; // true once the user drag-reorders tasks — preserves their custom order
 var searchText = '';
 var timerOn = false;
 var timerSecs = 25 * 60;
@@ -116,22 +117,24 @@ function render() {
     return matchFilter && matchSearch;
   });
 
-  // 2. Sort
-  shown.sort(function (a, b) {
-    if (currentSort === 'new') return (b.createdAt || 0) - (a.createdAt || 0);
-    if (currentSort === 'pri') {
-      var rank = { high: 0, medium: 1, low: 2 };
-      return rank[a.priority] - rank[b.priority];
-    }
-    if (currentSort === 'due') {
-      if (!a.due && !b.due) return 0;
-      if (!a.due) return 1;
-      if (!b.due) return -1;
-      return new Date(a.due) - new Date(b.due);
-    }
-    if (currentSort === 'az') return a.text.localeCompare(b.text);
-    return 0;
-  });
+  // 2. Sort (skipped once the user has drag-reordered — their order wins until they pick a sort)
+  if (!manualOrder) {
+    shown.sort(function (a, b) {
+      if (currentSort === 'new') return (b.createdAt || 0) - (a.createdAt || 0);
+      if (currentSort === 'pri') {
+        var rank = { high: 0, medium: 1, low: 2 };
+        return rank[a.priority] - rank[b.priority];
+      }
+      if (currentSort === 'due') {
+        if (!a.due && !b.due) return 0;
+        if (!a.due) return 1;
+        if (!b.due) return -1;
+        return new Date(a.due) - new Date(b.due);
+      }
+      if (currentSort === 'az') return a.text.localeCompare(b.text);
+      return 0;
+    });
+  }
 
   // 3. Draw
   if (shown.length === 0) {
@@ -157,7 +160,7 @@ function drawTask(t) {
       (late ? '⚠ ' : '📅 ') + months[parseInt(p[1]) - 1] + ' ' + parseInt(p[2]) + '</span>';
   }
 
-  return '<div class="task-item' + (t.done ? ' done' : '') + '" data-id="' + t.id + '">' +
+  return '<div class="task-item' + (t.done ? ' done' : '') + '" data-id="' + t.id + '" draggable="true">' +
     '<button class="cbox' + (t.done ? ' on' : '') + '" data-a="check" aria-label="' +
     (t.done ? 'Mark as not done' : 'Mark as done') + '" aria-pressed="' + (t.done ? 'true' : 'false') + '">' +
     (t.done ? '✓' : '') + '</button>' +
@@ -187,7 +190,49 @@ function attachEvents() {
     item.querySelector('[data-a="check"]').onclick = function () { toggleDone(id); };
     item.querySelector('[data-a="edit"]').onclick = function () { startEdit(id, item); };
     item.querySelector('[data-a="del"]').onclick = function () { deleteTask(id); };
+
+    // Drag-and-drop manual reordering
+    item.addEventListener('dragstart', function () {
+      item.classList.add('dragging');
+    });
+    item.addEventListener('dragend', function () {
+      item.classList.remove('dragging');
+      document.querySelectorAll('.task-item.drag-over').forEach(function (el) {
+        el.classList.remove('drag-over');
+      });
+    });
+    item.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      if (item.classList.contains('dragging')) return;
+      item.classList.add('drag-over');
+    });
+    item.addEventListener('dragleave', function () {
+      item.classList.remove('drag-over');
+    });
+    item.addEventListener('drop', function (e) {
+      e.preventDefault();
+      item.classList.remove('drag-over');
+      var draggedId = document.querySelector('.task-item.dragging');
+      draggedId = draggedId ? draggedId.getAttribute('data-id') : null;
+      if (!draggedId || draggedId === id) return;
+      reorderTasks(draggedId, id);
+    });
   });
+}
+
+// ── Manual drag reordering ──────────────────────────────────────────────────
+function reorderTasks(draggedId, targetId) {
+  var fromIdx = tasks.findIndex(function (t) { return t.id === draggedId; });
+  var toIdx = tasks.findIndex(function (t) { return t.id === targetId; });
+  if (fromIdx === -1 || toIdx === -1) return;
+
+  var moved = tasks.splice(fromIdx, 1)[0];
+  toIdx = tasks.findIndex(function (t) { return t.id === targetId; });
+  tasks.splice(toIdx, 0, moved);
+
+  manualOrder = true;
+  save();
+  render();
 }
 
 // ── Stats bar ──────────────────────────────────────────────────────────────
@@ -245,7 +290,61 @@ function addTask() {
 // ── Toggle complete ────────────────────────────────────────────────────────
 function toggleDone(id) {
   var t = tasks.find(function (t) { return t.id === id; });
-  if (t) { t.done = !t.done; save(); render(); }
+  if (t) {
+    t.done = !t.done;
+    save();
+    render();
+    if (t.done) recordCompletionToday();
+  }
+}
+
+// ── Streak tracker ───────────────────────────────────────────────────────────
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function recordCompletionToday() {
+  var days = JSON.parse(lsGet('completionDays', '[]'));
+  var today = todayStr();
+  if (days.indexOf(today) === -1) {
+    days.push(today);
+    lsSet('completionDays', JSON.stringify(days));
+  }
+  updateStreakBadge();
+}
+
+function computeStreak() {
+  var days = JSON.parse(lsGet('completionDays', '[]'));
+  var daySet = {};
+  days.forEach(function (d) { daySet[d] = true; });
+
+  var streak = 0;
+  var cursor = new Date();
+
+  // If nothing done today yet, streak can still count from yesterday backwards
+  if (!daySet[todayStr()]) {
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  while (true) {
+    var iso = cursor.toISOString().split('T')[0];
+    if (!daySet[iso]) break;
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
+
+function updateStreakBadge() {
+  var badge = document.getElementById('streakBadge');
+  if (!badge) return;
+  var streak = computeStreak();
+  if (streak > 0) {
+    badge.textContent = '🔥 ' + streak + (streak === 1 ? ' day' : ' days');
+    badge.style.display = 'inline-flex';
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
 // ── Inline edit ────────────────────────────────────────────────────────────
@@ -276,10 +375,24 @@ function startEdit(id, item) {
 
 // ── Delete ─────────────────────────────────────────────────────────────────
 function deleteTask(id) {
-  tasks = tasks.filter(function (t) { return t.id !== id; });
+  var idx = tasks.findIndex(function (t) { return t.id === id; });
+  if (idx === -1) return;
+  var removed = tasks[idx];
+
+  tasks.splice(idx, 1);
   save();
   render();
-  toast('Task deleted');
+
+  toast('Task deleted', 'Undo', function () {
+    // Re-insert by creation time rather than the old array index — if a new
+    // task was added during the 5s undo window, an index-based restore
+    // could land in the wrong slot.
+    var insertAt = tasks.findIndex(function (t) { return (t.createdAt || 0) < (removed.createdAt || 0); });
+    if (insertAt === -1) insertAt = tasks.length;
+    tasks.splice(insertAt, 0, removed);
+    save();
+    render();
+  });
 }
 
 // ── Voice input ────────────────────────────────────────────────────────────
@@ -385,14 +498,36 @@ function importTasks() {
 }
 
 // ── Toast ──────────────────────────────────────────────────────────────────
-function toast(msg) {
+function toast(msg, actionLabel, actionFn) {
   var wrap = document.getElementById('toasts');
   if (!wrap) return;
+
   var el = document.createElement('div');
   el.className = 'toast';
-  el.textContent = msg;
+
+  var msgSpan = document.createElement('span');
+  msgSpan.textContent = msg;
+  el.appendChild(msgSpan);
+
+  var timeoutId;
+  var dismiss = function () {
+    clearTimeout(timeoutId);
+    if (el.parentNode) el.parentNode.removeChild(el);
+  };
+
+  if (actionLabel && actionFn) {
+    var btn = document.createElement('button');
+    btn.className = 'toast-action';
+    btn.textContent = actionLabel;
+    btn.onclick = function () {
+      actionFn();
+      dismiss();
+    };
+    el.appendChild(btn);
+  }
+
   wrap.appendChild(el);
-  setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 2500);
+  timeoutId = setTimeout(dismiss, actionLabel ? 5000 : 2500);
 }
 
 function logout() {
@@ -412,6 +547,60 @@ function toggleTheme() {
   var next = cur === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next === 'light' ? '' : next);
   lsSet('theme', next);
+}
+
+// ── Due-date reminders (foreground check — notifies while the tab is open) ──
+function remindersEnabled() {
+  return lsGet('remindersOn', '') === 'true';
+}
+
+function checkDueReminders() {
+  if (!remindersEnabled() || !('Notification' in window) || Notification.permission !== 'granted') return;
+
+  var today = todayStr();
+  var notifiedKey = 'notified_' + today;
+  var notified = JSON.parse(lsGet(notifiedKey, '[]'));
+
+  tasks.forEach(function (t) {
+    if (t.due === today && !t.done && notified.indexOf(t.id) === -1) {
+      try {
+        new Notification('📅 Task due today', { body: t.text, icon: 'icon-192.png' });
+      } catch (e) { /* Notification constructor unsupported in this context — ignore */ }
+      notified.push(t.id);
+    }
+  });
+
+  lsSet(notifiedKey, JSON.stringify(notified));
+}
+
+function toggleReminders() {
+  if (!('Notification' in window)) {
+    toast('Notifications are not supported in this browser');
+    return;
+  }
+
+  if (remindersEnabled()) {
+    lsSet('remindersOn', 'false');
+    setNotifBtnState(false);
+    toast('Due-date reminders turned off');
+    return;
+  }
+
+  Notification.requestPermission().then(function (perm) {
+    if (perm === 'granted') {
+      lsSet('remindersOn', 'true');
+      setNotifBtnState(true);
+      toast('Due-date reminders turned on');
+      checkDueReminders();
+    } else {
+      toast('Notification permission denied');
+    }
+  });
+}
+
+function setNotifBtnState(on) {
+  var btn = document.getElementById('notifBtn');
+  if (btn) btn.classList.toggle('active', !!on);
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
@@ -472,6 +661,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (sortSel) {
     sortSel.addEventListener('change', function () {
       currentSort = this.value;
+      manualOrder = false; // an explicit sort choice overrides any drag order
       render();
     });
   }
@@ -490,11 +680,18 @@ document.addEventListener('DOMContentLoaded', function () {
   var clearBtn = document.getElementById('clearBtn');
   if (clearBtn) {
     clearBtn.addEventListener('click', function () {
-      var before = tasks.length;
+      var removedTasks = tasks.filter(function (t) { return t.done; });
+      if (removedTasks.length === 0) { toast('No completed tasks to clear'); return; }
+
       tasks = tasks.filter(function (t) { return !t.done; });
       save();
       render();
-      toast((before - tasks.length) + ' tasks cleared');
+
+      toast(removedTasks.length + ' tasks cleared', 'Undo', function () {
+        tasks = tasks.concat(removedTasks);
+        save();
+        render();
+      });
     });
   }
 
@@ -544,11 +741,61 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Keyboard shortcut — Escape closes modal
+  // Streak
+  updateStreakBadge();
+
+  // Due-date reminders
+  var notifBtn = document.getElementById('notifBtn');
+  if (notifBtn) {
+    notifBtn.addEventListener('click', toggleReminders);
+    setNotifBtnState(remindersEnabled() && 'Notification' in window && Notification.permission === 'granted');
+  }
+  checkDueReminders();
+  setInterval(checkDueReminders, 5 * 60 * 1000); // re-check every 5 minutes
+
+  // Keyboard shortcuts help modal
+  var shortcutsBtn = document.getElementById('shortcutsBtn');
+  var shortcutsModal = document.getElementById('shortcutsModal');
+  var shortcutsClose = document.getElementById('shortcutsClose');
+  if (shortcutsBtn && shortcutsModal) {
+    shortcutsBtn.addEventListener('click', function () { shortcutsModal.classList.add('open'); });
+  }
+  if (shortcutsClose && shortcutsModal) {
+    shortcutsClose.addEventListener('click', function () { shortcutsModal.classList.remove('open'); });
+  }
+  if (shortcutsModal) {
+    shortcutsModal.addEventListener('click', function (e) {
+      if (e.target === shortcutsModal) shortcutsModal.classList.remove('open');
+    });
+  }
+
+  // Global keyboard shortcuts — ignored while typing in a field, except Escape/Enter
   document.addEventListener('keydown', function (e) {
+    var tag = (e.target.tagName || '').toLowerCase();
+    var typing = tag === 'input' || tag === 'textarea' || tag === 'select';
+
     if (e.key === 'Escape') {
-      var m = document.getElementById('modal');
-      if (m) m.classList.remove('open');
+      document.querySelectorAll('.modal.open').forEach(function (m) { m.classList.remove('open'); });
+      return;
+    }
+
+    if (typing) return;
+
+    if (e.key === 'n' || e.key === 'N') {
+      e.preventDefault();
+      var ti = document.getElementById('taskInput');
+      if (ti) ti.focus();
+    } else if (e.key === '/') {
+      e.preventDefault();
+      var si = document.getElementById('searchInput');
+      if (si) si.focus();
+    } else if (e.key === 'p' || e.key === 'P') {
+      e.preventDefault();
+      var pb = document.getElementById('pomBtn');
+      if (pb) pb.click();
+    } else if (e.key === '?') {
+      e.preventDefault();
+      if (shortcutsModal) shortcutsModal.classList.add('open');
     }
   });
 });
