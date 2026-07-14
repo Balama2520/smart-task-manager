@@ -1,11 +1,15 @@
 // Service Worker for PWA - Offline Support
-const CACHE_NAME = 'smart-tasks-v2';
+const CACHE_NAME = 'smart-tasks-v3';
 const APP_SHELL = [
     './',
     './index.html',
     './style.css',
     './script.js',
-    './manifest.json'
+    './manifest.json',
+    './favicon-32.png',
+    './apple-touch-icon.png',
+    './icon-192.png',
+    './icon-512.png'
 ];
 
 // Install event - cache the local app shell.
