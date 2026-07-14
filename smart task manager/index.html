@@ -10,19 +10,22 @@
   <meta name="theme-color" content="#6366f1">
 
   <!-- Favicons -->
-  <link rel="icon" type="image/png" sizes="32x32" href="https://cdn-icons-png.flaticon.com/512/906/906334.png">
-  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/906/906334.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
   <!-- Open Graph / Twitter -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Smart Task Manager — Offline-First To-Do App">
   <meta property="og:description" content="Voice input, priority sorting, deadlines, dark mode, and a Pomodoro timer — all offline-first, no backend required.">
   <meta property="og:url" content="https://bala-smart-task-manager.netlify.app/">
-  <meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/906/906334.png">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:image" content="https://bala-smart-task-manager.netlify.app/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Smart Task Manager — Offline-first to-do app with voice input and Pomodoro timer">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Smart Task Manager">
   <meta name="twitter:description" content="Offline-first to-do app with voice input and a Pomodoro timer.">
-  <meta name="twitter:image" content="https://cdn-icons-png.flaticon.com/512/906/906334.png">
+  <meta name="twitter:image" content="https://bala-smart-task-manager.netlify.app/og-image.png">
 
   <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -78,6 +81,9 @@
         <span class="greeting" id="greeting">Good morning</span>
       </div>
       <div class="header-right">
+        <span class="streak-badge" id="streakBadge" style="display:none;" title="Consecutive days with a completed task"></span>
+        <button class="hbtn" id="shortcutsBtn" title="Keyboard shortcuts" aria-label="Show keyboard shortcuts">⌨</button>
+        <button class="hbtn" id="notifBtn" title="Due-date reminders" aria-label="Toggle due-date notifications">🔔</button>
         <button class="hbtn" id="themeToggle" title="Toggle theme" aria-label="Toggle dark and light theme">🌓</button>
         <button class="hbtn" id="profileBtn" title="About" aria-label="View developer profile">👤</button>
         <button class="hbtn" id="logoutBtn" title="Logout" aria-label="Log out and clear saved name">🚪</button>
@@ -190,17 +196,34 @@
         <a href="https://github.com/Balama2520" target="_blank" rel="noopener">⌥ GitHub</a>
       </div>
       <hr />
-      <p class="mdesc">IBM SkillsBuild capstone project. Vanilla JS PWA — no frameworks. Add, edit, delete tasks with
-        category, priority and due date. Voice input, Pomodoro timer, offline support, dark/light theme.</p>
+      <p class="mdesc">IBM SkillsBuild capstone project. Vanilla JS PWA — no frameworks. Add, edit, delete, and
+        drag-and-drop reorder tasks with category, priority and due date. Voice input, Pomodoro timer, due-date
+        browser reminders, a daily completion streak, keyboard shortcuts, offline support, and dark/light theme.</p>
       <div class="mtags">
         <span>Vanilla JS</span><span>CSS3</span><span>PWA</span>
-        <span>Web Speech API</span><span>localStorage</span><span>Service Worker</span>
+        <span>Web Speech API</span><span>Notifications API</span><span>Drag & Drop API</span>
+        <span>localStorage</span><span>Service Worker</span>
       </div>
       <a class="mlive" href="https://bala-smart-task-manager.netlify.app" target="_blank" rel="noopener">View Live ↗</a>
     </div>
   </div>
 
   <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+  <div class="modal" id="shortcutsModal">
+    <div class="mbox shortcuts-box" role="dialog" aria-modal="true" aria-labelledby="shortcutsTitle">
+      <button class="mclose" id="shortcutsClose" aria-label="Close keyboard shortcuts panel">✕</button>
+      <h2 id="shortcutsTitle">⌨ Keyboard Shortcuts</h2>
+      <ul class="shortcuts-list">
+        <li><kbd>N</kbd><span>Focus the new task field</span></li>
+        <li><kbd>/</kbd><span>Focus search</span></li>
+        <li><kbd>P</kbd><span>Toggle Pomodoro timer</span></li>
+        <li><kbd>Enter</kbd><span>Add task / confirm edit</span></li>
+        <li><kbd>Esc</kbd><span>Close modal or dialog</span></li>
+        <li><kbd>?</kbd><span>Show this shortcuts panel</span></li>
+      </ul>
+    </div>
+  </div>
 
   <script>
     if ('serviceWorker' in navigator) {
