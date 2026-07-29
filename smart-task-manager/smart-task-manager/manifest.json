@@ -1,0 +1,146 @@
+{
+    "name": "Smart Task Manager",
+    "short_name": "Smart Tasks",
+    "description": "Offline-first task manager with voice input, priority sorting, deadlines, and a built-in Pomodoro timer.",
+    "id": "/",
+    "start_url": "./index.html",
+    "scope": "./",
+    "display": "standalone",
+    "display_override": ["window-controls-overlay", "tabbed", "standalone", "minimal-ui", "browser"],
+    "background_color": "#0f172a",
+    "theme_color": "#6366f1",
+    "orientation": "portrait-primary",
+    "lang": "en-US",
+    "dir": "ltr",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icon-192-maskable.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icon-512-maskable.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Add a task",
+            "short_name": "Add Task",
+            "url": "./index.html?action=add",
+            "icons": [
+                {
+                    "src": "icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Start Pomodoro timer",
+            "short_name": "Pomodoro",
+            "url": "./index.html?action=pomodoro",
+            "icons": [
+                {
+                    "src": "icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        }
+    ],
+    "launch_handler": {
+        "client_mode": "focus-existing"
+    },
+    "edge_side_panel": {
+        "preferred_width": 416
+    },
+    "note_taking": {
+        "new_note_url": "./index.html?action=add"
+    },
+    "protocol_handlers": [
+        {
+            "protocol": "web+smarttasks",
+            "url": "./index.html?task=%s"
+        }
+    ],
+    "widgets": [
+        {
+            "name": "Smart Tasks — Today",
+            "short_name": "Today's Tasks",
+            "description": "See today's open tasks and your completion progress at a glance.",
+            "tag": "smartTasksToday",
+            "template": "smartTasksTemplate",
+            "ms_ac_template": "widgets/task-widget-template.json",
+            "data": "widgets/task-widget-data.json",
+            "type": "application/json",
+            "update": 3600,
+            "auth": false,
+            "icons": [
+                {
+                    "src": "icon-192.png",
+                    "sizes": "192x192"
+                }
+            ],
+            "screenshots": [
+                {
+                    "src": "og-image.png",
+                    "sizes": "1200x630",
+                    "label": "Smart Tasks widget preview",
+                    "platform": "any"
+                }
+            ]
+        }
+    ],
+    "share_target": {
+        "action": "./index.html",
+        "method": "GET",
+        "params": {
+            "title": "share_title",
+            "text": "share_text",
+            "url": "share_url"
+        }
+    },
+    "file_handlers": [
+        {
+            "action": "./index.html",
+            "accept": {
+                "application/json": [".json"]
+            }
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "screenshot-wide-1.png",
+            "sizes": "1917x858",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Task list with stats, filters, and quick-add"
+        },
+        {
+            "src": "screenshot-wide-2.png",
+            "sizes": "1915x867",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Developer profile and app details"
+        }
+    ],
+    "categories": [
+        "productivity",
+        "utilities"
+    ]
+}
