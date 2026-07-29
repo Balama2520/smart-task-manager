@@ -1,0 +1,44 @@
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dependency directories (in case tooling is added later)
+node_modules/
+.pnp/
+.pnp.js
+
+# Build output (in case tooling is added later)
+dist/
+build/
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# PWABuilder generated packages (large binaries — don't commit, attach to Releases instead)
+*.msix
+*.msixbundle
+*.appxbundle
+*.appx
+pwainstaller.exe
+install.ps1
+
+# Zip archives of the site itself
+smart-tasks-site.zip
+
+# Misc
+*.bak
+*.tmp

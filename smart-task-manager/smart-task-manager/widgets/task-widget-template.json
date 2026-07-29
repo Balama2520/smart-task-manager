@@ -1,0 +1,62 @@
+{
+  "type": "AdaptiveCard",
+  "version": "1.5",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "body": [
+    {
+      "type": "ColumnSet",
+      "columns": [
+        {
+          "type": "Column",
+          "width": "auto",
+          "items": [
+            {
+              "type": "Image",
+              "url": "https://bala-smart-task-manager.netlify.app/icon-192.png",
+              "size": "Small",
+              "style": "RoundedCorners"
+            }
+          ]
+        },
+        {
+          "type": "Column",
+          "width": "stretch",
+          "verticalContentAlignment": "Center",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Smart Tasks",
+              "weight": "Bolder",
+              "size": "Medium"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "TextBlock",
+      "text": "${count} task(s) due today",
+      "wrap": true,
+      "spacing": "Medium"
+    },
+    {
+      "type": "Container",
+      "$data": "${tasks}",
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "• ${text}",
+          "wrap": true,
+          "spacing": "Small"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.OpenUrl",
+      "title": "Open Smart Tasks",
+      "url": "https://bala-smart-task-manager.netlify.app/"
+    }
+  ]
+}
