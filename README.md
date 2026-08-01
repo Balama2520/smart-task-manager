@@ -1,6 +1,6 @@
 <div align="center">
 
-# ✅ Smart Tasks
+# ✅ Smart Task
 
 **An offline-first task manager. No sign-up, no backend, no data leaving your device.**
 
