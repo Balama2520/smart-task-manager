@@ -1,8 +1,8 @@
 <div align="center">
 
-# ✅ Smart Task
+# ✅ Smart Tasks
 
-**An offline-first task manager. No sign-up, no backend, no data leaving your device.**
+**An offline-first task manager. ** No sign-up, no backend, no data leaving your device.**
 
 [Live App](https://bala-smart-task-manager.netlify.app) · [Report a Bug](https://github.com/Balama2520/smart-task-manager/issues/new) · [Request a Feature](https://github.com/Balama2520/smart-task-manager/issues/new)
 
@@ -26,7 +26,7 @@ This is a rebuilt, second version of an earlier task manager I built as an inter
 - **Daily streak tracking** — tracks consecutive days with a completed task
 - **Offline support** — full functionality with no internet connection, via a Service Worker
 - **Installable** — works as a native-feeling app on desktop and mobile (PWA)
-- **Import / export** — back up or transfer your tasks as a JSON file
+- **Import/export** — back up or transfer your tasks as a JSON file
 - **Dark / light theme** — with system-aware defaults
 - **Keyboard shortcuts** — `N` new task, `/` search, `P` Pomodoro, `Esc` close, `?` shortcuts panel
 - **Privacy-first** — no analytics, no ads, no third-party trackers
@@ -36,7 +36,7 @@ This is a rebuilt, second version of an earlier task manager I built as an inter
 | Layer | Technology |
 |---|---|
 | UI | Vanilla JavaScript, HTML5, CSS3 |
-| Offline / caching | Service Worker (Cache API) |
+| Offline/caching | Service Worker (Cache API) |
 | Voice input | Web Speech API |
 | Notifications | Notifications API |
 | Reordering | Drag and Drop API |
@@ -50,7 +50,7 @@ No frameworks, no bundler, no `node_modules` required to run it.
 
 Because this is a static site with no build step, running it locally is simple.
 
-### Option 1 — just open it
+### Option 1 — open it
 Clone the repo and open `index.html` directly in a browser. Most features work this way, though the Service Worker and some browser APIs behave more reliably when served over `http://` rather than `file://`.
 
 ### Option 2 — serve it locally (recommended)
@@ -58,10 +58,10 @@ Clone the repo and open `index.html` directly in a browser. Most features work t
 git clone https://github.com/Balama2520/smart-task-manager.git
 cd smart-task-manager
 
-# any static file server works, for example:
-npx serve .
+# Any static file server works, for example:
+npx serve.
 # or
-python3 -m http.server 8080
+python3 -m http. serverserver 8080
 ```
 Then open `http://localhost:8080` (or whichever port your server prints).
 
